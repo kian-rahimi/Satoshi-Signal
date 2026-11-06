@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      CACHE_FILE: /app/data/bitcoin_usd_daily.csv
+      CACHE_TTL_MINUTES: 60
+      CRYPTOCOMPARE_API_KEY: ${CRYPTOCOMPARE_API_KEY:-}
+    volumes:
+      - bitcoin_data:/app/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+volumes:
+  bitcoin_data:
+
